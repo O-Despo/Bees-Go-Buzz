@@ -1,6 +1,12 @@
 import requests
 import re
+from pymongo import MongoClient
+import json
 
+#mongo interface
+client = MongoClient('localhost', 27017)
+database = client['buzz_db']
+collection = database['buzz_gen']
 class data_extract_driver():
     def __init__(self):
         #inits regex patterns 
@@ -43,7 +49,6 @@ class data_extract_driver():
         return json_resp
     
     def api_request(self, return_full = True, specific_api = None):
-        self.init_api_strings()
         response_dict = {}
 
         if specific_api is not None:
@@ -64,11 +69,15 @@ class data_extract_driver():
         response = requests.get(url)
         self.resp_text = response.text
         self.regex_html_info(self.resp_text)
-        self.init_api_strings()
+        self.init_api_strings_with_ids()
         api_return = self.api_request()
         self.page_data.update(api_return)
         return self.page_data
 
+url = 'https://www.buzzfeed.com/sallykaplan/cheap-ways-to-upgrade-the-things-you-already-own'
 dex = data_extract_driver()
-ur = ("https://www.buzzfeed.com/victoriavouloumanos/people-share-telling-loved-ones-holidays-cancelled-reactions?ref=hpsplash&origin=spl")
-print(dex.run_on_url(ur))
+resp = dex.run_on_url(url)
+collection.replace_one(
+    {url: "https://www.buzzfeed.com/sallykaplan/cheap-ways-to-upgrade-the-things-you-already-own"},
+    resp
+)

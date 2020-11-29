@@ -2,6 +2,11 @@ import requests
 import json
 import pickle
 import xml.etree.ElementTree as ET
+from pymongo import MongoClient
+
+client = MongoClient('localhost', 27017)
+database = client['buzz_db']
+collection = database['buzz_gen']
 
 # class save_state_xml:
 #     def __init__(self):
@@ -53,16 +58,14 @@ class XML_scrap_driver:
         for sitemap in self.sitemaps:
             print(f'On Sitemap: {sitemap}\nXML: {self.sitemaps[sitemap]}')
             site_maps_secondary = self.urls_from_xml(self.sitemaps[sitemap])
-
             for secondary_url in site_maps_secondary:
                 article_urls = self.urls_from_xml(secondary_url)
                 for article_url in article_urls:
-                    urls_data_dict[article_url] = sitemap
-
-        json.dump(urls_data_dict, self.out_json)
-
-    def run_new  ()
-
+                    dict_for_mongo = {
+                        'url': article_url,
+                        'topic': sitemap
+                    }
+                    collection.insert_one(dict_for_mongo)    
 
 XML_driver = XML_scrap_driver()
-XML_driver.run()
+XML_driver.run_all()
